@@ -2,14 +2,13 @@ import { google } from "googleapis";
 import dotenv from "dotenv";
 dotenv.config();
 
-const auth = new google.auth.JWT(
-  process.env.GOOGLE_CLIENT_EMAIL,
-  null,
-  process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-  ["https://www.googleapis.com/auth/spreadsheets"]
-);
+const auth = new google.auth.GoogleAuth({
+  keyFile: "./service-account.json",
+  scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+});
 
-const sheets = google.sheets({ version: "v4", auth });
+const client = await auth.getClient();
+const sheets = google.sheets({ version: "v4", auth: client });
 
 export async function saveJobs(jobs) {
   const rows = jobs.map(job => [
@@ -21,7 +20,7 @@ export async function saveJobs(jobs) {
   ]);
 
   await sheets.spreadsheets.values.append({
-    spreadsheetId: process.env.SHEET_ID,
+    spreadsheetId: process.env.GOOGLE_SHEET_ID,
     range: "Sheet1!A:E",
     valueInputOption: "USER_ENTERED",
     requestBody: {
