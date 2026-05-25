@@ -1,8 +1,25 @@
+import fs from "fs";
 import { scrapeJobs } from "./scraper.js";
 import { saveJobs } from "./sheets.js";
 
+const FILE_PATH = "./seenJobs.json";
 
-const seenJobs = new Set();
+// load seen jobs from file
+function loadSeenJobs() {
+  try {
+    const data = fs.readFileSync(FILE_PATH, "utf-8");
+    return new Set(JSON.parse(data));
+  } catch {
+    return new Set();
+  }
+}
+
+// save seen jobs to file
+function saveSeenJobs(seenJobs) {
+  fs.writeFileSync(FILE_PATH, JSON.stringify([...seenJobs], null, 2));
+}
+
+let seenJobs = loadSeenJobs();
 
 async function runCycle() {
   console.log("Checking for new jobs...");
@@ -21,6 +38,8 @@ async function runCycle() {
 
   await saveJobs(newJobs);
 
+  // 🔥 persist after each cycle
+  saveSeenJobs(seenJobs);
 }
 
 async function start() {
@@ -31,7 +50,6 @@ async function start() {
       console.error("Cycle error:", err);
     }
 
-    // wait 60 seconds
     await new Promise(r => setTimeout(r, 60 * 1000));
   }
 }
