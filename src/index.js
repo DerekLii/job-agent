@@ -1,6 +1,7 @@
 import { scrapeJobs } from "./scraper.js";
 import { saveJobs } from "./sheets.js";
 
+
 const seenJobs = new Set();
 
 async function runCycle() {
